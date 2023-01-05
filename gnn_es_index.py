@@ -25,7 +25,8 @@ class AGC(opt.Optimizer):
                 grad_norm = unitwise_norm(p.grad)
                 max_norm = param_norm * group['clipping']
                 trigger = grad_norm > max_norm
-                clipped = p.grad * (max_norm / torch.max(grad_norm, torch.tensor(1e-6).cuda()))
+                clipped = p.grad * (max_norm / torch.max(
+                    grad_norm, torch.tensor(1e-6).to(p.device)))
                 p.grad.data.copy_(torch.where(trigger, clipped, p.grad))
         self.optim.step(closure)
 
@@ -41,8 +42,8 @@ class LSTMModule(nn.Module):
     def __init__(self, input_size = 1, hidden_size = 1, num_layers = 2):
         super(LSTMModule, self).__init__()
         self.rnn = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.h = torch.zeros(num_layers, 1, hidden_size, requires_grad=True).cuda()
-        self.c = torch.zeros(num_layers, 1, hidden_size, requires_grad=True).cuda()
+        self.h = torch.zeros(num_layers, 1, hidden_size, requires_grad=True).to(device)
+        self.c = torch.zeros(num_layers, 1, hidden_size, requires_grad=True).to(device)
     def forward(self, x):
         self.rnn.flatten_parameters()
         out, (h_end, c_end) = self.rnn(x, (self.h, self.c))
@@ -74,12 +75,12 @@ class Generator(nn.Module):
             *block(noise_dim+args.cnndim, 512), *block(512, 1024), nn.Linear(1024, len(assets)))
         init_weights(self)
         self.extract = Extractor(args.cnndim)
-        self.std_weight = nn.Parameter(torch.zeros(len(assets)).cuda()) # changing this for convenience of GradInit
+        self.std_weight = nn.Parameter(torch.zeros(len(assets)).to(device)) # changing this for convenience of GradInit
     def forward(self, x):
         mu = self.model(self.extract(x))
         return mu, mu + (self.std_weight * torch.randn_like(mu))
 
-actor = Generator(args.noise).cuda()
+actor = Generator(args.noise).to(device)
 opt = AGC(filter(lambda p: p.requires_grad, actor.parameters()),
     opt.QHAdam(filter(lambda p: p.requires_grad, actor.parameters()), lr=1e-3))
 
@@ -87,7 +88,7 @@ best_reward = None
 
 for epoch in range(args.iter):
     torch.cuda.empty_cache()
-    weights, dweights = actor(torch.randn((args.batch, args.noise)).cuda())
+    weights, dweights = actor(torch.randn((args.batch, args.noise)).to(device))
     dweights = nn.functional.dropout(dweights, p = 0.75)
     dweights = dweights.softmax(dim=1)
     dweights = dweights / dweights.abs().sum(dim=1).reshape(-1, 1)
@@ -98,7 +99,7 @@ for epoch in range(args.iter):
     opt.step()
 
     with torch.no_grad():
-        weights = sparsemax(weights.mean(dim=0), dim=0)
+        weights = entmax15(weights.mean(dim=0), dim=0)
         test_reward = calculate_reward(weights.unsqueeze(0), 
             valid_data[-test_size:], index[-test_size:])[0]
 
