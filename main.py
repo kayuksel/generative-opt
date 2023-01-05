@@ -6,12 +6,6 @@ import math, pdb
 import numpy as np
 import pandas as pd
 import _pickle as cPickle
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
-cmap = sns.diverging_palette(220, 10, as_cmap=True)
-
 from past.builtins import execfile
 from argparse import ArgumentParser
 parser = ArgumentParser(description='Input parameters for Generative Surprising Networks')
