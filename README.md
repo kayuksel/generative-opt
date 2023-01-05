@@ -1,4 +1,4 @@
-# Democratizing Index Tracking for Small Investors in Europe: A Meta-Learning Approach for Sparse Portfolio Optimization 
+# Democratizing Index Tracking: A Meta-Learning Approach for Sparse Portfolio Optimization 
 
 Investing in stocks is a popular way for individuals to grow their wealth and diversify their investment portfolio, but many exchange-traded funds (ETFs) and mutual funds that offer actively managed index funds are not available to small investors in Europe due to UCITS regulations. An approach, called sparse index tracking, allows investors to create their own portfolio of stocks based on an index. However, selecting the optimal portfolio from thousands of stocks can be a complex and time-consuming task.
 
