@@ -28,7 +28,7 @@ class FastCMA(object):
         z = torch.randn(self.mean.size(0), self.samples).cuda()
         ss = self.mean.view(-1, 1) + step_size * self.b.matmul(self.d.matmul(z))
         f = calculate_reward(sparsemax(ss, dim=1).T, 
-            valid_data[:-test_size], index[:-test_size], True)
+            valid_data[:-test_size], index[:-test_size])
         results = [{'parameters': ss.T[i], 'z': z.T[i], 
         'fitness': f.item()} for i, f in enumerate(f)]
         ranked_results = sorted(results, key=lambda x: x['fitness'])
