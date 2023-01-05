@@ -84,13 +84,11 @@ class DropBlock(nn.Module):
         super(DropBlock, self).__init__()
         self.p = p
         self.bs = bs
-
     def forward(self, x):
         gamma = self.p / (self.bs ** 2)
         mask = (torch.rand(x.shape[0], *x.shape[2:]) < gamma)
         bm = self._compute_block_mask(mask.float().to(x.device))
         return x * bm[:, None, :] * bm.numel() / bm.sum()
-
     def _compute_block_mask(self, mask):
         block_mask = nn.functional.max_pool1d(input=mask[:, None, :],
         kernel_size=self.bs, stride=1, padding=self.bs // 2)
