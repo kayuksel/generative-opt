@@ -6,6 +6,12 @@ import math, pdb
 import numpy as np
 import pandas as pd
 import _pickle as cPickle
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+cmap = sns.diverging_palette(220, 10, as_cmap=True)
+
 from past.builtins import execfile
 from argparse import ArgumentParser
 parser = ArgumentParser(description='Input parameters for Generative Surprising Networks')
@@ -73,11 +79,32 @@ valid_data[valid_data < -q3] = -q3
 valid_data = valid_data.pin_memory().cuda(non_blocking=True)
 test_size = len(valid_data)//5
 
+class DropBlock(nn.Module):
+    def __init__(self, p, bs = 1):
+        super(DropBlock, self).__init__()
+        self.p = p
+        self.bs = bs
+
+    def forward(self, x):
+        gamma = self.p / (self.bs ** 2)
+        mask = (torch.rand(x.shape[0], *x.shape[2:]) < gamma)
+        bm = self._compute_block_mask(mask.float().to(x.device))
+        return x * bm[:, None, :] * bm.numel() / bm.sum()
+
+    def _compute_block_mask(self, mask):
+        block_mask = nn.functional.max_pool1d(input=mask[:, None, :],
+        kernel_size=self.bs, stride=1, padding=self.bs // 2)
+        if self.bs % 2 == 0: block_mask = block_mask[:, :, :-1]
+        return (1 - block_mask.squeeze(1))
+dblock = DropBlock(p = 0.75, bs = 1)
+
 def calculate_reward(weights, valid_data, index_data, train = False):
     diff = weights.matmul(valid_data.T) - index_data
     if not train: return diff.clamp(max=0.0).pow(2).mean(dim=1)
     ww = torch.arange(1, len(valid_data)+1).pow(0.5).cuda()
     #ww = torch.arange(2, len(valid_data)+2).log().cuda()
+    #diff = nn.functional.dropout(diff, p = 0.75)
+    diff = dblock(diff.unsqueeze(1)).squeeze(1)
     return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1)
 
 method = input('Do you want to use "GNN" or "CMA" for Portfolio Optimization for Selected Index(s)?\n')
