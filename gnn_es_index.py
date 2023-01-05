@@ -99,7 +99,7 @@ for epoch in range(args.iter):
     opt.step()
 
     with torch.no_grad():
-        weights = entmax15(weights.mean(dim=0), dim=0)
+        weights = sparsemax(weights.mean(dim=0), dim=0)
         test_reward = calculate_reward(weights.unsqueeze(0), 
             valid_data[-test_size:], index[-test_size:])[0]
 
