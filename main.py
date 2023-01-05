@@ -2,16 +2,10 @@
 #Kamer Ali Yuksel linkedin.com/in/kyuksel#
 ##########################################
 
-import math, pdb
+import math
 import numpy as np
 import pandas as pd
 import _pickle as cPickle
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
-cmap = sns.diverging_palette(220, 10, as_cmap=True)
-
 from past.builtins import execfile
 from argparse import ArgumentParser
 parser = ArgumentParser(description='Input parameters for Generative Surprising Networks')
@@ -33,6 +27,7 @@ np.random.seed(args.rseed)
 torch.manual_seed(args.rseed)
 torch.cuda.manual_seed(args.rseed)
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 with open('Dataset.pkl', 'rb') as f: Dataset = cPickle.load(f)
 
 ban_stocks = input('Enter stocks to exclude (comma-separate if multiple). Press enter to skip this step.\n').split()
@@ -45,8 +40,8 @@ while not selected:
     selected = [etf for etf in selected if etf in Dataset.columns]
 
 #RTH, RYH, VGT, FXG, XLP, DEF
-sel_ret = torch.Tensor(Dataset[selected].values).cuda()
-mweights = torch.ones(len(selected)).cuda()
+sel_ret = torch.Tensor(Dataset[selected].values).to(device)
+mweights = torch.ones(len(selected)).to(device)
 mweights /= mweights.sum()
 index = (sel_ret * mweights).sum(dim=1)
 
@@ -76,7 +71,8 @@ q3 =  q3 + 1.5 * (q3 - valid_data.abs().quantile(0.25))
 valid_data[valid_data > q3] = q3
 valid_data[valid_data < -q3] = -q3
 
-valid_data = valid_data.pin_memory().cuda(non_blocking=True)
+if torch.cuda.is_available():
+    valid_data = valid_data.pin_memory().to(device, non_blocking=True)
 test_size = len(valid_data)//5
 
 class DropBlock(nn.Module):
@@ -99,7 +95,7 @@ dblock = DropBlock(p = 0.75, bs = 1)
 def calculate_reward(weights, valid_data, index_data, train = False):
     diff = weights.matmul(valid_data.T) - index_data
     if not train: return diff.clamp(max=0.0).pow(2).mean(dim=1)
-    ww = torch.arange(1, len(valid_data)+1).pow(0.5).cuda()
+    ww = torch.arange(1, len(valid_data)+1).pow(0.5).to(device)
     diff = dblock(diff.unsqueeze(1)).squeeze(1)
     return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1)
 
