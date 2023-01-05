@@ -100,8 +100,6 @@ def calculate_reward(weights, valid_data, index_data, train = False):
     diff = weights.matmul(valid_data.T) - index_data
     if not train: return diff.clamp(max=0.0).pow(2).mean(dim=1)
     ww = torch.arange(1, len(valid_data)+1).pow(0.5).cuda()
-    #ww = torch.arange(2, len(valid_data)+2).log().cuda()
-    #diff = nn.functional.dropout(diff, p = 0.75)
     diff = dblock(diff.unsqueeze(1)).squeeze(1)
     return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1)
 
