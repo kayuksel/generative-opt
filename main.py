@@ -105,10 +105,10 @@ def calculate_reward(weights, valid_data, index_data, train = False):
 
 method = input('Do you want to use "GNN" or "CMA" for Portfolio Optimization for Selected Index(s)?\n')
 if method == 'GNN':
-    print('Starting the optimization. You can check best_weights.csv for the best portfolio found.')
+    print('Starting GNN optimizer. You can check best_weights.csv for the best portfolio found.')
     execfile('gnn_es_index.py')
 elif method == 'CMA':
-    print('Starting the optimization. You can check best_weights.csv for the best portfolio found.')
+    print('Starting CMA optimizer. You can check best_weights.csv for the best portfolio found.')
     execfile('cma_es_index.py')    
 else:
     print('Invalid entry. Continuing with the "GNN" method. Check best_weights.csv for results.')
