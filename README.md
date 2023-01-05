@@ -4,7 +4,7 @@ Investing in stocks is a popular way for individuals to grow their wealth and di
 
 To address this issue, I have developed a novel population-based optimization method employing a Deep Generative Neural Network trained with policy gradient to sample high-quality candidates. I have compared it against the state-of-the-art evolutionary strategy (Fast CMA-ES) and have found that it is more efficient at finding optimal solutions. Both methods are implemented on GPU using the PyTorch framework and are available in this repository (together with the dataset) for their reproducibility and further improvement.
 
-Please download the dataset via https://drive.google.com/file/d/1RVhboDO3u_subUgG1G8rwdY7Ar6Dyrxf/view?usp=sharing 
-and place it into this folder, before running main_ind_track.py to start one of the optimizers that is available.
+Before running main_ind_track.py download the dataset from the following link and place it into this folder: 
+https://drive.google.com/file/d/1RVhboDO3u_subUgG1G8rwdY7Ar6Dyrxf/view?usp=sharing 
 
 ![](qc_backtest.png)
