@@ -9,14 +9,12 @@ syms = ['AAPL', 'MSFT', 'TXN', 'SNPS', 'MCHP', 'NVDA', 'SBUX', 'ASML', 'QCOM', '
 class MultidimensionalModulatedRegulators(QCAlgorithm):
     def Initialize(self):
         self.SetStartDate(2020, 1, 1)
-        #self.SetEndDate(2017, 1, 1)
         self.SetCash(100000)
         self.SetExecution(VolumeWeightedAveragePriceExecutionModel())
  
         self.symbols = []
         for i in range(len(syms)):
             self.symbols.append(Symbol.Create(syms[i], SecurityType.Equity, Market.USA))
-            self.Debug(syms[i])
             
         self.SetUniverseSelection(ManualUniverseSelectionModel(self.symbols) )
         self.UniverseSettings.Resolution = Resolution.Hour
