@@ -6,9 +6,9 @@ class FastCMA(object):
     def __init__(self, N, samples):
         self.samples = samples
         mu = samples // 2
-        self.weights = torch.tensor([math.log(mu + 0.5)]).cuda()
+        self.weights = torch.tensor([math.log(mu + 0.5)]).to(device)
         self.weights = self.weights - torch.linspace(
-            start=1, end=mu, steps=mu).cuda().log()
+            start=1, end=mu, steps=mu).to(device).log()
         self.weights /= self.weights.sum()
         self.mueff = (self.weights.sum() ** 2 / (self.weights ** 2).sum()).item()
         # settings
@@ -17,15 +17,15 @@ class FastCMA(object):
         self.cmu = 2 * (self.mueff - 2 + 1 / self.mueff) 
         self.cmu /= ((N + 2) ** 2 + 2 * self.mueff / 2)
         # variables
-        self.mean = torch.zeros(N).cuda()
-        self.b = torch.eye(N).cuda()
+        self.mean = torch.zeros(N).to(device)
+        self.b = torch.eye(N).to(device)
         self.d = self.b.clone()
         bd = self.b * self.d
         self.c = bd * bd.T
         self.pc = self.mean.clone()
 
     def step(self, step_size = 0.5):
-        z = torch.randn(self.mean.size(0), self.samples).cuda()
+        z = torch.randn(self.mean.size(0), self.samples).to(device)
         ss = self.mean.view(-1, 1) + step_size * self.b.matmul(self.d.matmul(z))
         f = calculate_reward(sparsemax(ss, dim=1).T, 
             valid_data[:-test_size], index[:-test_size])
