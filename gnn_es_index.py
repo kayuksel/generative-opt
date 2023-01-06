@@ -6,8 +6,8 @@ def unitwise_norm(x):
     dim = [1, 2, 3] if x.ndim == 4 else 0
     return torch.sum(x**2, dim=dim, keepdim= x.ndim > 1) ** 0.5
 
-class AGC(opt.Optimizer):
-    def __init__(self, params, optim: opt.Optimizer, clipping = 1e-2, eps = 1e-3):
+class AGC(torch.optim.Optimizer):
+    def __init__(self, params, optim: torch.optim.Optimizer, clipping = 1e-2, eps = 1e-3):
         self.optim = optim
         defaults = dict(clipping=clipping, eps=eps)
         defaults = {**defaults, **optim.defaults}
