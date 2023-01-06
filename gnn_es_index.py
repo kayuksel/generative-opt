@@ -2,34 +2,6 @@
 #Kamer Ali Yuksel linkedin.com/in/kyuksel#
 ##########################################
 
-def unitwise_norm(x):
-    dim = [1, 2, 3] if x.ndim == 4 else 0
-    return torch.sum(x**2, dim=dim, keepdim= x.ndim > 1) ** 0.5
-
-class AGC(torch.optim.Optimizer):
-    def __init__(self, params, optim: torch.optim.Optimizer, clipping = 1e-2, eps = 1e-3):
-        self.optim = optim
-        defaults = dict(clipping=clipping, eps=eps)
-        defaults = {**defaults, **optim.defaults}
-        super(AGC, self).__init__(params, defaults)
-
-    @torch.no_grad()
-    def step(self, closure=None):
-        loss = None
-        if closure is not None:
-            with torch.enable_grad(): loss = closure()
-        for group in self.param_groups:
-            for p in group['params']:
-                param_norm = torch.max(unitwise_norm(
-                    p), torch.tensor(group['eps']).to(p.device))
-                grad_norm = unitwise_norm(p.grad)
-                max_norm = param_norm * group['clipping']
-                trigger = grad_norm > max_norm
-                clipped = p.grad * (max_norm / torch.max(
-                    grad_norm, torch.tensor(1e-6).to(p.device)))
-                p.grad.data.copy_(torch.where(trigger, clipped, p.grad))
-        self.optim.step(closure)
-
 def init_weights(model):
     for m in model.modules():
         if isinstance(m, nn.BatchNorm1d):
@@ -81,8 +53,7 @@ class Generator(nn.Module):
         return mu, mu + (self.std_weight * torch.randn_like(mu))
 
 actor = Generator(args.noise).to(device)
-opt = AGC(filter(lambda p: p.requires_grad, actor.parameters()),
-    torch.optim.AdamW(filter(lambda p: p.requires_grad, actor.parameters()), lr=1e-3))
+opt = torch.optim.AdamW(filter(lambda p: p.requires_grad, actor.parameters()), lr=1e-3)
 
 best_reward = None
 
