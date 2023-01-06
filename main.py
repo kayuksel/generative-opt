@@ -2,7 +2,7 @@
 #Kamer Ali Yuksel linkedin.com/in/kyuksel#
 ##########################################
 
-import math
+import math, pdb
 import numpy as np
 import pandas as pd
 import _pickle as cPickle
@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 parser = ArgumentParser(description='Input parameters for Generative Surprising Networks')
 parser.add_argument('--noise', default=16, type=int, help='Number of Noise Variables for GSN')
 parser.add_argument('--cnndim', default=2, type=int, help='Size of Latent Dimensions for GSN')
-parser.add_argument('--iter', default=1000, type=int, help='Number of Total Iterations for Solver')
+parser.add_argument('--iter', default=100, type=int, help='Number of Total Iterations for Solver')
 parser.add_argument('--batch', default=1024, type=int, help='Number of Evaluations in an Iteration')
 parser.add_argument('--rseed', default=0, type=int, help='Random Seed for Network Initialization')
 args = parser.parse_args()
@@ -66,6 +66,8 @@ Dataset = Dataset.drop(columns=ETFs)
 assets = list(Dataset.columns.values)
 valid_data = np.array(Dataset)
 valid_data = torch.from_numpy(valid_data).float()
+test_size = len(valid_data)//5
+
 q3 = valid_data.abs().quantile(0.75)
 q3 =  q3 + 1.5 * (q3 - valid_data.abs().quantile(0.25))
 valid_data[valid_data > q3] = q3
@@ -73,30 +75,12 @@ valid_data[valid_data < -q3] = -q3
 
 if torch.cuda.is_available():
     valid_data = valid_data.pin_memory().to(device, non_blocking=True)
-test_size = len(valid_data)//5
-
-class DropBlock(nn.Module):
-    def __init__(self, p, bs = 1):
-        super(DropBlock, self).__init__()
-        self.p = p
-        self.bs = bs
-    def forward(self, x):
-        gamma = self.p / (self.bs ** 2)
-        mask = (torch.rand(x.shape[0], *x.shape[2:]) < gamma)
-        bm = self._compute_block_mask(mask.float().to(x.device))
-        return x * bm[:, None, :] * bm.numel() / bm.sum()
-    def _compute_block_mask(self, mask):
-        block_mask = nn.functional.max_pool1d(input=mask[:, None, :],
-        kernel_size=self.bs, stride=1, padding=self.bs // 2)
-        if self.bs % 2 == 0: block_mask = block_mask[:, :, :-1]
-        return (1 - block_mask.squeeze(1))
-dblock = DropBlock(p = 0.75, bs = 1)
 
 def calculate_reward(weights, valid_data, index_data, train = False):
     diff = weights.matmul(valid_data.T) - index_data
     if not train: return diff.clamp(max=0.0).pow(2).mean(dim=1)
-    ww = torch.arange(1, len(valid_data)+1).pow(0.5).to(device)
-    diff = dblock(diff.unsqueeze(1)).squeeze(1)
+    ww = torch.arange(1, diff.shape[1]+1).pow(0.5).to(device)
+    diff = nn.functional.dropout(diff, p = 0.75)
     return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1)
 
 method = input('Do you want to use "GNN" or "CMA" for Portfolio Optimization for Selected Index(s)?\n')
