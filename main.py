@@ -8,9 +8,10 @@ import pandas as pd
 import _pickle as cPickle
 from past.builtins import execfile
 from argparse import ArgumentParser
-parser = ArgumentParser(description='Input parameters for Generative Surprising Networks')
-parser.add_argument('--noise', default=16, type=int, help='Number of Noise Variables for GSN')
-parser.add_argument('--cnndim', default=2, type=int, help='Size of Latent Dimensions for GSN')
+parser = ArgumentParser(description='Input parameters for Deep Generative Neural Network')
+parser.add_argument('--faster', default=False, type=bool, help='Population Generation Strategy Mode')
+parser.add_argument('--noise', default=16, type=int, help='Number of Noise Variables for GNN')
+parser.add_argument('--cnndim', default=2, type=int, help='Size of Latent Dimensions for GNN')
 parser.add_argument('--iter', default=100, type=int, help='Number of Total Iterations for Solver')
 parser.add_argument('--batch', default=1024, type=int, help='Number of Evaluations in an Iteration')
 parser.add_argument('--rseed', default=0, type=int, help='Random Seed for Network Initialization')
