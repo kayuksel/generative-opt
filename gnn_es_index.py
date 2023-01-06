@@ -82,16 +82,14 @@ class Generator(nn.Module):
 
 actor = Generator(args.noise).to(device)
 opt = AGC(filter(lambda p: p.requires_grad, actor.parameters()),
-    opt.QHAdam(filter(lambda p: p.requires_grad, actor.parameters()), lr=1e-3))
+    torch.optim.AdamW(filter(lambda p: p.requires_grad, actor.parameters()), lr=1e-3))
 
 best_reward = None
 
 for epoch in range(args.iter):
     torch.cuda.empty_cache()
     weights, dweights = actor(torch.randn((args.batch, args.noise)).to(device))
-    dweights = nn.functional.dropout(dweights, p = 0.75)
-    dweights = dweights.softmax(dim=1)
-    dweights = dweights / dweights.abs().sum(dim=1).reshape(-1, 1)
+    dweights = nn.functional.dropout(dweights, p = 0.75).softmax(dim=1)
     loss = calculate_reward(dweights, valid_data[:-test_size], index[:-test_size], True).mean()
     opt.zero_grad()
     loss.backward()
@@ -99,7 +97,7 @@ for epoch in range(args.iter):
     opt.step()
 
     with torch.no_grad():
-        #entmax15 is better but portfolios are less sparse
+        #entmax15 actually is better but resulting portfolios are less sparse
         weights = sparsemax(weights.mean(dim=0), dim=0)
         test_reward = calculate_reward(weights.unsqueeze(0), 
             valid_data[-test_size:], index[-test_size:])[0]
