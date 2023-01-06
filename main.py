@@ -29,7 +29,7 @@ torch.cuda.manual_seed(args.rseed)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 with open('Dataset.pkl', 'rb') as f: Dataset = cPickle.load(f)
 
-ban_stocks = input('Enter stocks to exclude (comma-separate if multiple). Press enter to skip this step.\n').split()
+ban_stocks = input('Enter tickers to exclude (comma-separate if multiple). Press enter to skip this step.\n').split()
 ban_stocks = [etf for etf in ban_stocks if etf in Dataset.columns]
 Dataset = Dataset.drop(columns = ban_stocks)
 
