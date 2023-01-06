@@ -18,7 +18,6 @@ args = parser.parse_args()
 
 import torch
 import torch.nn as nn
-import torch_optimizer as opt
 from entmax import entmax15, sparsemax
 
 torch.backends.cudnn.deterministic = True
