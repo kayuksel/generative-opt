@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/585382109.svg)](https://zenodo.org/badge/latestdoi/585382109)
+
 # Democratizing Index Tracking: A GNN-based Meta-Learning Method for Sparse Portfolio Optimization
 Investing in stocks is a popular way for individuals to grow their wealth and diversify their investment portfolio, but many exchange-traded funds (ETFs) and mutual funds that offer actively managed index funds are not available to small investors in Europe due to UCITS regulations. An approach, called sparse index tracking, can allow investors to create their own sparse stock portfolio for tracking an index. However, selecting the optimal portfolio from thousands of stocks is a sophisticated and resource-intensive task.
 ![](backtest_vgt.png)
