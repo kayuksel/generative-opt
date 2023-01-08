@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Yuksel"
+  given-names: "Kamer Ali"
+title: "Generative Meta-Learning for Portfolio Optimization"
+version: 1.0.0
+doi: 10.5281/zenodo.7514197 
+date-released: 2023-1-8
+url: "https://github.com/kayuksel/generative-opt"
