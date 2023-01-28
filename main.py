@@ -83,18 +83,21 @@ def corr(X, eps=1e-08):
     return 1/(D-1) * X @ X.transpose(-1, -2)
 
 def calculate_reward(weights, valid_data, index_data, train = False):
+    #substract the candidate returns from the index being tracked
     diff = weights.matmul(valid_data.T) - index_data
+    #allow positive deviations from the index, for fun and profits
     if not train: return diff.clamp(max=0.0).pow(2).mean(dim=1)
 
     #weight the training returns by recency in performance calculation
     ww = torch.arange(1, diff.shape[1]+1).pow(0.5).to(device)
 
-    #the performance is calculated from randomly selected 25% returns
+    #the performances are calculated from randomly selected 25% returns
+    #similar to a monte-carlo simulation to check candidate robustness 
     diff = nn.functional.dropout(diff, p = 0.75)
 
     #minimize the maximum correlation in-between portfolio candidates
     corr_max = corr(diff).fill_diagonal_(0.0).max(dim=1)[0]
-
+    #perform quality diversity optimization with multiple objectives
     return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1) * corr_max
 
 method = input('Do you want to use "GNN" or "CMA" for Portfolio Optimization for Selected Index(s)?\n')
