@@ -7,4 +7,6 @@ To address this issue, I have developed a novel population-based optimization me
 ![](gnn_arch.png)
 Before running **main.py**, download **Dataset.pkl** from the below link and place it to this folder:  
 https://drive.google.com/file/d/1RVhboDO3u_subUgG1G8rwdY7Ar6Dyrxf/view?usp=sharing  
+
+The key for out-of-sample robustness in portfolio optimization is quality-diversity optimization, where one aims to obtain multiple diverse solutions of high quality, rather than one. Generative meta-learning is the only portfolio optimization method that performs QD optimization to obtain a robust ensemble portfolio consisting of several de-correlated sub-portfolios. In the below image, the red line is the index to be tracked, the blue line is the sparse portfolio ensembled from a thousand behaviorally-diverse sub-portfolios co-optimized (other lines).
 ![](test_img.png)
