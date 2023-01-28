@@ -59,8 +59,13 @@ best_reward = None
 
 for epoch in range(args.iter):
     torch.cuda.empty_cache()
+    #dweights is a noisy version of the weights, use weights for validation
     weights, dweights = actor(torch.randn((args.batch, args.noise)).to(device))
+    
+    #robustness of portfolio candidates against dropping 75% of their weights
+    #the portfolio candidates should be robust when their weights are dropped
     dweights = nn.functional.dropout(dweights, p = 0.75).softmax(dim=1)
+    
     loss = calculate_reward(dweights, valid_data[:-test_size], index[:-test_size], True).mean()
     opt.zero_grad()
     loss.backward()
@@ -68,6 +73,7 @@ for epoch in range(args.iter):
     opt.step()
 
     with torch.no_grad():
+        #take mean of quality-diversity candidates and spasify using sparsemax
         #entmax15 actually is better but resulting portfolios are less sparse
         weights = sparsemax(weights.mean(dim=0), dim=0)
         test_reward = calculate_reward(weights.unsqueeze(0), 
