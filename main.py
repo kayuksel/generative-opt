@@ -75,12 +75,20 @@ valid_data[valid_data < -q3] = -q3
 if torch.cuda.is_available():
     valid_data = valid_data.pin_memory().to(device, non_blocking=True)
 
+def corr(X, eps=1e-08):
+    D = X.shape[-1]
+    std = torch.std(X, dim=-1).unsqueeze(-1)
+    mean = torch.mean(X, dim=-1).unsqueeze(-1)
+    X = (X - mean) / (std + eps)
+    return 1/(D-1) * X @ X.transpose(-1, -2)
+
 def calculate_reward(weights, valid_data, index_data, train = False):
     diff = weights.matmul(valid_data.T) - index_data
     if not train: return diff.clamp(max=0.0).pow(2).mean(dim=1)
     ww = torch.arange(1, diff.shape[1]+1).pow(0.5).to(device)
     diff = nn.functional.dropout(diff, p = 0.75)
-    return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1)
+    corr_max = corr(diff).fill_diagonal_(0.0).max(dim=1)[0]
+    return (diff.clamp(max=0.0).pow(2) * (ww/ww.sum())).sum(dim=1) * corr_max
 
 method = input('Do you want to use "GNN" or "CMA" for Portfolio Optimization for Selected Index(s)?\n')
 if method == 'GNN':
